@@ -15,6 +15,12 @@ var tmpl template.Template = *template.Must(template.ParseFiles("./templates/ind
 var db *sql.DB
 
 func main() {
+    var err error
+	db, err = sql.Open("sqlite3", "webshelf.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
@@ -37,12 +43,6 @@ type Book struct {
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("sqlite3", "webshelf.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
 	query_string := "select name, url, currentChapter from books where name like ?"
 	query_key := fmt.Sprintf("%%%s%%", r.URL.Query().Get("key"))
 
@@ -74,4 +74,5 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addBook(w http.ResponseWriter, r *http.Request) {
+	defer db.Close()
 }
