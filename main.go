@@ -106,6 +106,26 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteBook(w http.ResponseWriter, r *http.Request) {
+    tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	statement, err := tx.Prepare("delete from books where id = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+    vars := mux.Vars(r)
+	_, err = statement.Exec(vars["bookId"]) 
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tmpl.ExecuteTemplate(w, "index", nil)
 }
 
 func editBook(w http.ResponseWriter, r *http.Request) {
