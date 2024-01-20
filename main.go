@@ -25,7 +25,9 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/search/", searchHandler).Methods("GET")
-	r.HandleFunc("/add/", addBook).Methods("POST")
+	r.HandleFunc("/book/{id:[0-9]+}/", addBook).Methods("POST")
+	r.HandleFunc("/book/{id:[0-9]+}/", editBook).Methods("PATCH")
+	r.HandleFunc("/book/{id:[0-9]+}/", deleteBook).Methods("DELETE")
 
 	http.Handle("/", r)
 
