@@ -15,7 +15,7 @@ var tmpl template.Template = *template.Must(template.ParseFiles("./templates/ind
 var db *sql.DB
 
 func main() {
-    var err error
+	var err error
 	db, err = sql.Open("sqlite3", "webshelf.db")
 	if err != nil {
 		log.Fatal(err)
@@ -25,6 +25,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/search/", searchHandler).Methods("GET")
+	r.HandleFunc("/add/", addBook).Methods("POST")
 
 	http.Handle("/", r)
 
@@ -39,7 +40,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 type Book struct {
 	Name           string
 	Url            string
-	CurrentChapter int
+	CurrentChapter string
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +57,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	for resultRows.Next() {
 		var name string
 		var url string
-		var currentChapter int
+		var currentChapter string
 
 		err = resultRows.Scan(&name, &url, &currentChapter)
 		if err != nil {
@@ -74,5 +75,36 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addBook(w http.ResponseWriter, r *http.Request) {
-	defer db.Close()
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	statement, err := tx.Prepare("insert into books(name, url, currentChapter) values(?, ?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer statement.Close()
+
+	newBook := Book{
+		Name:           r.FormValue("bookName"),
+		Url:            r.FormValue("bookUrl"),
+		CurrentChapter: r.FormValue("bookChapter"),
+	}
+	_, err = statement.Exec(newBook.Name, newBook.Url, newBook.CurrentChapter)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tmpl.ExecuteTemplate(w, "index", nil)
+}
+
+func deleteBook(w http.ResponseWriter, r *http.Request) {
+}
+
+func editBook(w http.ResponseWriter, r *http.Request) {
 }
