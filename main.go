@@ -158,6 +158,7 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+    //TODO also redirect here
     http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -166,4 +167,21 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 
 
 func editHandler(w http.ResponseWriter, r *http.Request) {
+	query_string := "select name, url, currentChapter from books where id = ?"
+    vars := mux.Vars(r)
+
+	resultRow := db.QueryRow(query_string, vars["id"])
+
+    var name string
+    var url string
+    var currentChapter string
+
+    err := resultRow.Scan(&name, &url, &currentChapter)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    book := Book{Name: name, Url: url, CurrentChapter: currentChapter}
+
+	tmpl.ExecuteTemplate(w, "bookEdit", book)
 }
