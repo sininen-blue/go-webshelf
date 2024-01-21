@@ -37,7 +37,7 @@
                 </button> 
                 <h1>Shelf</h1>
 
-                <section id="shelfList">
+                <section class="flex flex-col gap-2" id="shelfList">
                 </section>
             </main>
 
@@ -54,15 +54,20 @@
 {{ block "bookList" . }}
 {{ range .Results }}
 {{ block "book" . }}
-<div class="flex p-2 shadow shadow shadow-slate-900 bg-slate-700">
-    <a href="{{ .Url }}">{{ .Name }}</a>
-    <p>{{ .CurrentChapter }}</p>
+<div class="p-2 shadow shadow shadow-slate-900 bg-slate-700">
+    <a class="text-gray-200 text-lg"
+        href="{{ .Url }}">
+        {{ .Name }}
+    </a>
 
-    <button hx-get="/book/{{ .Id }}/edit">Edit</button>
-    <button hx-delete="/book/{{ .Id }}/"
-        hx-confirm="Are you sure you want to delete this book">
-        Delete
-    </button>
+    <div class="float-right">
+        <p>Last Viewed Chapter: {{ .CurrentChapter }}</p>
+        <button hx-get="/book/{{ .Id }}/edit">Edit</button>
+        <button hx-delete="/book/{{ .Id }}/"
+            hx-confirm="Are you sure you want to delete this book">
+            Delete
+        </button>
+    </div>
 </div>
 {{ end }}
 {{ end }}
