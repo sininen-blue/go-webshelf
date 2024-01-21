@@ -37,7 +37,36 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl.ExecuteTemplate(w, "index", nil)
+	query_string := "select id, name, url, currentChapter from books" 
+	resultRows, err := db.Query(query_string)
+	if err != nil {
+		log.Println("db query error")
+		log.Fatal(err)
+	}
+
+	var searchResults []Book
+	for resultRows.Next() {
+        var id string
+		var name string
+		var url string
+		var currentChapter string
+
+		err = resultRows.Scan(&id, &name, &url, &currentChapter)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+        book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
+		searchResults = append(searchResults, book)
+	}
+
+	data := map[string][]Book{
+		"Results": searchResults,
+	}
+
+    // bit inefficient, should look at how to make this not 
+    // send the entire thing when redirecting
+	tmpl.ExecuteTemplate(w, "index", data)
 }
 
 type Book struct {
@@ -106,7 +135,7 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 	}
 
     // might need to redirect this
-	tmpl.ExecuteTemplate(w, "book", newBook)
+    http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func deleteBook(w http.ResponseWriter, r *http.Request) {

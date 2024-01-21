@@ -31,13 +31,13 @@
                 <button type="submit"
                     hx-include="previous form"
                     hx-post="/book/"
-                    hx-swap="afterbegin"
-                    hx-target="#shelfList">
+                    hx-target="body">
                     Add New
                 </button> 
                 <h1>Shelf</h1>
 
                 <section class="flex flex-col gap-2" id="shelfList">
+                    {{ template "bookList" . }}
                 </section>
             </main>
 
