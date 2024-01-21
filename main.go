@@ -27,7 +27,7 @@ func main() {
 	r.HandleFunc("/search/", searchHandler).Methods("GET")
 	r.HandleFunc("/book/", addBook).Methods("POST")
 	r.HandleFunc("/book/{id:[0-9]+}/", editBook).Methods("PATCH")
-	r.HandleFunc("/book/{id:[0-9]+}/edit", editBook).Methods("GET")
+	r.HandleFunc("/book/{id:[0-9]+}/edit", editHandler).Methods("GET")
 	r.HandleFunc("/book/{id:[0-9]+}/", deleteBook).Methods("DELETE")
 
 	http.Handle("/", r)
@@ -74,7 +74,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string][]Book{
 		"Results": searchResults,
 	}
-	tmpl.ExecuteTemplate(w, "index", data)
+	tmpl.ExecuteTemplate(w, "bookList", data)
 }
 
 func addBook(w http.ResponseWriter, r *http.Request) {
@@ -130,4 +130,8 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func editBook(w http.ResponseWriter, r *http.Request) {
+}
+
+
+func editHandler(w http.ResponseWriter, r *http.Request) {
 }
