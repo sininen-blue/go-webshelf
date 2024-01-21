@@ -158,8 +158,7 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-    //TODO also redirect here
-	tmpl.ExecuteTemplate(w, "index", nil)
+    http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func editBook(w http.ResponseWriter, r *http.Request) {
