@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"text/template"
@@ -77,8 +76,8 @@ type Book struct {
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	query_string := "select id, name, url, currentChapter from books where name like ?"
-	query_key := fmt.Sprintf("%%%s%%", r.URL.Query().Get("key"))
+	query_string := "select * from books where name like ?"
+	query_key := "%" + r.URL.Query().Get("q") + "%"
 
 	resultRows, err := db.Query(query_string, query_key)
 	if err != nil {
