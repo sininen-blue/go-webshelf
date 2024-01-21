@@ -76,7 +76,7 @@
 
 
 {{ block "bookEdit" . }}
-<form hx-patch="/book/" hx-target="body" hx-trigger="submit">
+<form hx-patch="/book/{{ .Id }}/" hx-target="body" hx-trigger="submit">
     <label for="bookUrl">Url</label>
     <input type="url" id="bookUrl" name="bookUrl" value="{{ .Url }}" required>
     <label for="bookName">Name</label>
