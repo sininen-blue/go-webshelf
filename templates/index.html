@@ -20,20 +20,16 @@
 
         <section class="flex flex-col md:flex-row gap-2 justify-center mt-4 mx-2">
             <main class="flex flex-col gap-2 w-11/12 md:w-2/3 p-2">
-                <form>
+                <form hx-post="/book/" hx-target="body" hx-trigger="submit">
                     <label for="bookUrl">Url</label>
-                    <input type="url" id="bookUrl" name="bookUrl" placeholder="https://archiveiofou...">
+                    <input type="url" id="bookUrl" name="bookUrl" placeholder="https://archiveiofou..." required>
                     <label for="bookName">Name</label>
-                    <input type="text" id="bookName" name="bookName" placeholder="Folklore Worm...">
+                    <input type="text" id="bookName" name="bookName" placeholder="Folklore Worm..." required>
                     <label for="bookChapter">Last Viewed Chapter</label>
-                    <input type="number" id="bookChapter" name="bookChapter" placeholder="4">
+                    <input type="number" id="bookChapter" name="bookChapter" placeholder="4" required>
+
+                    <button type="submit">Add</button>
                 </form>
-                <button type="submit"
-                    hx-include="previous form"
-                    hx-post="/book/"
-                    hx-target="body">
-                    Add New
-                </button> 
                 <h1>Shelf</h1>
 
                 <section class="flex flex-col gap-2" id="shelfList">
@@ -80,18 +76,14 @@
 
 
 {{ block "bookEdit" . }}
-<form>
+<form hx-patch="/book/" hx-target="body" hx-trigger="submit">
     <label for="bookUrl">Url</label>
-    <input type="url" id="bookUrl" name="bookUrl" value="{{ .Name }}">
+    <input type="url" id="bookUrl" name="bookUrl" value="{{ .Url }}" required>
     <label for="bookName">Name</label>
-    <input type="text" id="bookName" name="bookName" value="{{ .Url }}">
+    <input type="text" id="bookName" name="bookName" value="{{ .Name }}" required>
     <label for="bookChapter">Last Viewed Chapter</label>
-    <input type="number" id="bookChapter" name="bookChapter" value="{{ .CurrentChapter }}">
+    <input type="number" id="bookChapter" name="bookChapter" value="{{ .CurrentChapter }}" required>
+
+    <button type="submit">Edit</button>
 </form>
-<button type="submit"
-    hx-include="previous form"
-    hx-patch="/book/{{ .Id }}"
-    hx-target="body">
-    Add New
-</button> 
 {{ end }}
