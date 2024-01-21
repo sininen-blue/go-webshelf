@@ -41,13 +41,14 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Book struct {
+    Id string
 	Name           string
 	Url            string
 	CurrentChapter string
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	query_string := "select name, url, currentChapter from books where name like ?"
+	query_string := "select id, name, url, currentChapter from books where name like ?"
 	query_key := fmt.Sprintf("%%%s%%", r.URL.Query().Get("key"))
 
 	resultRows, err := db.Query(query_string, query_key)
@@ -58,16 +59,17 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	var searchResults []Book
 	for resultRows.Next() {
+        var id string
 		var name string
 		var url string
 		var currentChapter string
 
-		err = resultRows.Scan(&name, &url, &currentChapter)
+		err = resultRows.Scan(&id, &name, &url, &currentChapter)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		book := Book{Name: name, Url: url, CurrentChapter: currentChapter}
+        book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
 		searchResults = append(searchResults, book)
 	}
 
@@ -103,6 +105,7 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+    // might need to redirect this
 	tmpl.ExecuteTemplate(w, "book", newBook)
 }
 
@@ -116,7 +119,7 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
     vars := mux.Vars(r)
-	_, err = statement.Exec(vars["bookId"]) 
+	_, err = statement.Exec(vars["id"]) 
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -126,6 +129,7 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+    //TODO also redirect here
 	tmpl.ExecuteTemplate(w, "index", nil)
 }
 
