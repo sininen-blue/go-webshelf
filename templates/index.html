@@ -21,8 +21,20 @@
         <section class="flex flex-col md:flex-row gap-2 justify-center mt-4 mx-2">
             <main class="flex flex-col gap-2 w-11/12 md:w-2/3 p-2">
                 <form>
-                    <input type="text" name="" value="">
+                    <label for="bookUrl">Url</label>
+                    <input type="url" id="bookUrl" name="bookUrl" placeholder="https://archiveiofou...">
+                    <label for="bookName">Name</label>
+                    <input type="text" id="bookName" name="bookName" placeholder="Folklore Worm...">
+                    <label for="bookChapter">Last Viewed Chapter</label>
+                    <input type="number" id="bookChapter" name="bookChapter" placeholder="4">
                 </form>
+                <button type="submit"
+                    hx-include="previous form"
+                    hx-post="/book/"
+                    hx-swap="afterbegin"
+                    hx-target="#shelfList">
+                    Add New
+                </button> 
                 <h1>Shelf</h1>
 
                 <section id="shelfList">
@@ -41,9 +53,11 @@
 
 {{ block "bookList" . }}
 {{ range .Results }}
+{{ block "book" . }}
 <div class="flex p-2 shadow shadow shadow-slate-900 bg-slate-700">
     <a href="{{ .Url }}">{{ .Name }}</a>
     <p>{{ .CurrentChapter }}</p>
 </div>
+{{ end }}
 {{ end }}
 {{ end }}

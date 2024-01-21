@@ -103,7 +103,7 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	tmpl.ExecuteTemplate(w, "index", nil)
+	tmpl.ExecuteTemplate(w, "book", newBook)
 }
 
 func deleteBook(w http.ResponseWriter, r *http.Request) {
