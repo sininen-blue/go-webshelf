@@ -67,7 +67,8 @@
             Edit
         </button>
         <button hx-delete="/book/{{ .Id }}/"
-            hx-target="body"
+            hx-swap="delete"
+            hx-target="closest #book"
             hx-confirm="Are you sure you want to delete this book">
             Delete
         </button>
@@ -89,7 +90,7 @@
 </form>
 <button type="submit"
     hx-include="previous form"
-    hx-post="/book/"
+    hx-patch="/book/{{ .Id }}"
     hx-target="body">
     Add New
 </button> 

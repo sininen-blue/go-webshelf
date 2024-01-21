@@ -157,31 +157,55 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func editBook(w http.ResponseWriter, r *http.Request) {
+    tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ? where id = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+    url := r.FormValue("bookUrl")
+    name := r.FormValue("bookName")
+    currentChapter := r.FormValue("bookChapter")
+
+    vars := mux.Vars(r)
+	_, err = statement.Exec(url, name, currentChapter, vars["id"]) 
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
 
     //TODO also redirect here
     http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func editBook(w http.ResponseWriter, r *http.Request) {
-}
-
 
 func editHandler(w http.ResponseWriter, r *http.Request) {
-	query_string := "select name, url, currentChapter from books where id = ?"
+	query_string := "select id, name, url, currentChapter from books where id = ?"
     vars := mux.Vars(r)
 
 	resultRow := db.QueryRow(query_string, vars["id"])
 
+    var id string
     var name string
     var url string
     var currentChapter string
 
-    err := resultRow.Scan(&name, &url, &currentChapter)
+    err := resultRow.Scan(&id, &name, &url, &currentChapter)
     if err != nil {
         log.Fatal(err)
     }
 
-    book := Book{Name: name, Url: url, CurrentChapter: currentChapter}
+    book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
 
 	tmpl.ExecuteTemplate(w, "bookEdit", book)
 }
