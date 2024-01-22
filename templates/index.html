@@ -20,13 +20,20 @@
 
         <section class="flex flex-col md:flex-row gap-2 justify-center mt-4 mx-2">
             <main class="flex flex-col gap-2 w-11/12 md:w-2/3 p-2">
-                <form hx-post="/book/" hx-target="body" hx-trigger="submit">
-                    <label for="bookUrl">Url</label>
-                    <input type="url" id="bookUrl" name="bookUrl" placeholder="https://archiveiofou..." required>
-                    <label for="bookName">Name</label>
-                    <input type="text" id="bookName" name="bookName" placeholder="Folklore Worm..." required>
-                    <label for="bookChapter">Last Viewed Chapter</label>
-                    <input type="number" id="bookChapter" name="bookChapter" placeholder="4" required>
+                <form hx-post="/book/" hx-target="body" hx-trigger="submit"
+                    class="flex flex-row flex-wrap gap-2 p-4 border-2 border-solid border-gray-700">
+                    <div class="flex flex-col">
+                        <label for="bookUrl">Url</label>
+                        <input type="url" id="bookUrl" name="bookUrl" placeholder="https://archiveiofou..." required>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bookName">Name</label>
+                        <input type="text" id="bookName" name="bookName" placeholder="Folklore Worm..." required>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bookChapter">Last Viewed Chapter</label>
+                        <input type="number" id="bookChapter" name="bookChapter" placeholder="4" required>
+                    </div>
 
                     <button type="submit">Add</button>
                 </form>
@@ -50,14 +57,15 @@
 {{ block "bookList" . }}
 {{ range .Results }}
 {{ block "book" . }}
-<div id="book" class="p-2 shadow shadow shadow-slate-900 bg-slate-700">
-    <a class="text-gray-200 text-lg"
+<div id="book" class="flex items-center p-2 shadow shadow shadow-slate-900 bg-slate-700">
+    <a class="text-gray-200 text-lg font-semibold no-underline my-4"
         href="{{ .Url }}">
         {{ .Name }}
     </a>
 
-    <div class="float-right">
-        <p>Last Viewed Chapter: {{ .CurrentChapter }}</p>
+    <h2 class="text-gray-500 text-3xl my-0 ml-auto">{{ .CurrentChapter }}</h2>
+
+    <div class="flex flex-col gap-1 ml-4">
         <button hx-get="/book/{{ .Id }}/edit"
             hx-target="closest #book">
             Edit
