@@ -19,7 +19,7 @@
         </header>
 
         <section class="flex flex-col md:flex-row gap-2 justify-center mt-4 mx-2">
-            <main class="flex flex-col gap-2 w-11/12 md:w-2/3 p-2">
+            <main class="flex flex-col gap-2 order-2 md:order-1 w-11/12 md:w-3/4 lg:w-1/3 p-2">
                 <form hx-post="/book/" hx-target="body" hx-trigger="submit"
                     class="flex flex-row flex-wrap gap-2 p-4 border-2 border-solid border-gray-700">
                     <div class="flex flex-col">
@@ -35,7 +35,7 @@
                         <input type="number" id="bookChapter" name="bookChapter" placeholder="4" required>
                     </div>
 
-                    <button type="submit">Add</button>
+                    <button class="w-12 ml-auto" type="submit">Add</button>
                 </form>
                 <h1>Shelf</h1>
 
@@ -44,7 +44,7 @@
                 </section>
             </main>
 
-            <aside class="w-11/12 md:w-72 h-72 p-2 shadow shadow-slate-900 bg-slate-600">
+            <aside class="w-11/12 md:w-72 h-60 p-2 order-1 md:order-2 shadow shadow-slate-900 bg-slate-700">
                 <h1>Recent Updates</h1>
                 <p>I put in too much work for this thing so even though it's not going to be used I'll keep it</p>
             </aside>
@@ -66,11 +66,13 @@
     <h2 class="text-gray-500 text-3xl my-0 ml-auto">{{ .CurrentChapter }}</h2>
 
     <div class="flex flex-col gap-1 ml-4">
-        <button hx-get="/book/{{ .Id }}/edit"
+        <button class="h-8"
+            hx-get="/book/{{ .Id }}/edit"
             hx-target="closest #book">
             Edit
         </button>
-        <button hx-delete="/book/{{ .Id }}/"
+        <button class="h-8"
+            hx-delete="/book/{{ .Id }}/"
             hx-swap="delete"
             hx-target="closest #book"
             hx-confirm="Are you sure you want to delete this book">
