@@ -12,6 +12,12 @@
             opacity: 0;
             transition: scale 1s cubic-bezier(.97,-0.28,.73,.78), opacity 1s ease-out;
         }
+        .htmx-request .htmx-indicator {
+            opacity:1
+        }
+        .svg-gray-400 {
+            filter: invert(68%) sepia(8%) saturate(381%) hue-rotate(179deg) brightness(95%) contrast(87%);
+        }
         </style>
 
         <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime/uno.global.js"></script>
@@ -23,7 +29,11 @@
                 class="w-10/12 md:w-64 h-8"
                 hx-get="/search/"
                 hx-trigger="keyup delay:200mx changed"
-                hx-target="#shelfList">
+                hx-target="#shelfList"
+                hx-indicator="#spinner">
+            <div class="w-0 h-0 ml-2">
+                <img id="spinner" class="relative bottom-3 animate-spin svg-gray-400 htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
+            </div>
         </header>
 
         <section class="flex flex-col md:flex-row gap-2 justify-center mt-4 mx-2">
