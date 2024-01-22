@@ -35,7 +35,7 @@
                         <input type="number" id="bookChapter" name="bookChapter" placeholder="4" required>
                     </div>
 
-                    <button class="w-12 ml-auto" type="submit">Add</button>
+                    <button class="w-10 ml-auto" type="submit"><img src="/static/icons/book-plus.svg" alt="Plus button svg"></button>
                 </form>
                 <h1>Shelf</h1>
 
@@ -69,14 +69,14 @@
         <button class="h-8"
             hx-get="/book/{{ .Id }}/edit"
             hx-target="closest #book">
-            Edit
+            <img src="/static/icons/pencil.svg" alt="Edit icon">
         </button>
         <button class="h-8"
             hx-delete="/book/{{ .Id }}/"
             hx-swap="delete"
             hx-target="closest #book"
             hx-confirm="Are you sure you want to delete this book">
-            Delete
+            <img src="/static/icons/trash.svg" alt="Delete icon">
         </button>
     </div>
 </div>

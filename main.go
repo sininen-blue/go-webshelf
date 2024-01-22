@@ -22,6 +22,8 @@ func main() {
 	defer db.Close()
 
 	r := mux.NewRouter()
+    r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/search/", searchHandler).Methods("GET")
 	r.HandleFunc("/book/", addBook).Methods("POST")
