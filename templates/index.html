@@ -6,6 +6,14 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <style>
+        #book.htmx-swapping {
+            scale: 0;
+            opacity: 0;
+            transition: scale 1s cubic-bezier(.97,-0.28,.73,.78), opacity 1s ease-out;
+        }
+        </style>
+
         <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime/uno.global.js"></script>
         <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
     </head>
@@ -73,7 +81,7 @@
         </button>
         <button class="h-8"
             hx-delete="/book/{{ .Id }}/"
-            hx-swap="delete"
+            hx-swap="delete swap:1s"
             hx-target="closest #book"
             hx-confirm="Are you sure you want to delete this book">
             <img src="/static/icons/trash.svg" alt="Delete icon">
