@@ -30,7 +30,7 @@
                 hx-get="/search/"
                 hx-trigger="keyup delay:200mx changed"
                 hx-target="#shelfList"
-                hx-indicator="#spinner">
+                hx-indicator="closest #spinner">
             <div class="w-0 h-0 ml-2">
                 <img id="spinner" class="relative bottom-3 animate-spin svg-gray-400 htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
             </div>
@@ -38,22 +38,23 @@
 
         <section class="flex flex-col md:flex-row gap-2 justify-center mt-4 mx-2">
             <main class="flex flex-col gap-2 order-2 md:order-1 w-11/12 md:w-3/4 lg:w-1/3 p-2">
-                <form hx-post="/book/" hx-target="body" hx-trigger="submit"
-                    class="flex flex-row flex-wrap gap-2 p-4 border-2 border-solid border-gray-700">
-                    <div class="flex flex-col">
-                        <label for="bookUrl">Url</label>
-                        <input type="url" id="bookUrl" name="bookUrl" placeholder="https://archiveiofou..." required>
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="bookName">Name</label>
-                        <input type="text" id="bookName" name="bookName" placeholder="Folklore Worm..." required>
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="bookChapter">Last Viewed Chapter</label>
-                        <input type="number" id="bookChapter" name="bookChapter" placeholder="4" required>
-                    </div>
+                <form class="flex flex-col flex-wrap gap-2 p-4 border-2 border-solid border-gray-700"
+                    hx-post="/book/" 
+                    hx-target="body" 
+                    hx-trigger="submit"
+                    hx-indicator="closest #spinner">
 
-                    <button class="w-10 ml-auto" type="submit"><img src="/static/icons/book-plus.svg" alt="Plus button svg"></button>
+                    <label for="bookUrl">Url</label>
+                    <input type="url" id="bookUrl" name="bookUrl" placeholder="https://archiveiofou..." required>
+                    <label for="bookName">Name</label>
+                    <input type="text" id="bookName" name="bookName" placeholder="Folklore Worm..." required>
+                    <label for="bookChapter">Last Viewed Chapter</label>
+                    <input type="number" id="bookChapter" name="bookChapter" placeholder="4" required>
+
+                    <div class="flex items-center ml-auto mt-2">
+                        <img id="spinner" class="bottom-3 animate-spin svg-gray-400 htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
+                        <button class="w-14 ml-2" type="submit"><img src="/static/icons/book-plus.svg" alt="Plus button svg"></button>
+                    </div>
                 </form>
                 <h1>Shelf</h1>
 
