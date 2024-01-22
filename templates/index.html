@@ -109,14 +109,20 @@
 
 
 {{ block "bookEdit" . }}
-<form hx-patch="/book/{{ .Id }}/" hx-target="body" hx-trigger="submit">
-    <label for="bookUrl">Url</label>
-    <input type="url" id="bookUrl" name="bookUrl" value="{{ .Url }}" required>
-    <label for="bookName">Name</label>
-    <input type="text" id="bookName" name="bookName" value="{{ .Name }}" required>
-    <label for="bookChapter">Last Viewed Chapter</label>
-    <input type="number" id="bookChapter" name="bookChapter" value="{{ .CurrentChapter }}" required>
+<form class="flex flex-row flex-wrap items-center w-full"
+    hx-patch="/book/{{ .Id }}/" hx-target="body" hx-trigger="submit">
+    <div class="flex flex-col w-10/12">
+        <label for="bookUrl">Url</label>
+        <input type="url" id="bookUrl" name="bookUrl" value="{{ .Url }}" required>
+        <label for="bookName">Name</label>
+        <input type="text" id="bookName" name="bookName" value="{{ .Name }}" required>
+        <label for="bookChapter">Last Viewed Chapter</label>
+        <input class="w-12" type="number" id="bookChapter" name="bookChapter" value="{{ .CurrentChapter }}" required>
+    </div>
 
-    <button type="submit">Edit</button>
+    <button class="ml-auto w-8 h-8 ml-2 bg-slate-600 hover:bg-slate-500 border-0 border-b-2 active:translate-y-0.5 border-slate-700" 
+        type="submit">
+        <img class="svg-slate-400" src="/static/icons/pencil.svg" alt="Edit icon">
+    </button>
 </form>
 {{ end }}
