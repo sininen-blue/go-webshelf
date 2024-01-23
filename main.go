@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"text/template"
+	"time"
 
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -12,6 +13,8 @@ import (
 
 var tmpl template.Template = *template.Must(template.ParseFiles("./templates/index.html"))
 var db *sql.DB
+
+const timeLayout string = "2006/01/02"
 
 func main() {
 	var err error
@@ -22,7 +25,7 @@ func main() {
 	defer db.Close()
 
 	r := mux.NewRouter()
-    r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/search/", searchHandler).Methods("GET")
@@ -38,7 +41,7 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	query_string := "select id, name, url, currentChapter from books" 
+	query_string := "select id, name, url, currentChapter from books"
 	resultRows, err := db.Query(query_string)
 	if err != nil {
 		log.Println("db query error")
@@ -47,7 +50,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	var searchResults []Book
 	for resultRows.Next() {
-        var id string
+		var id string
 		var name string
 		var url string
 		var currentChapter string
@@ -57,7 +60,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
-        book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
+		book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
 		searchResults = append(searchResults, book)
 	}
 
@@ -65,16 +68,18 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		"Results": searchResults,
 	}
 
-    // bit inefficient, should look at how to make this not 
-    // send the entire thing when redirecting
+	// bit inefficient, should look at how to make this not
+	// send the entire thing when redirecting
 	tmpl.ExecuteTemplate(w, "index", data)
 }
 
 type Book struct {
-    Id string
+	Id             string
 	Name           string
 	Url            string
 	CurrentChapter string
+	DateCreated    string
+	DateUpdated    string
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +94,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	var searchResults []Book
 	for resultRows.Next() {
-        var id string
+		var id string
 		var name string
 		var url string
 		var currentChapter string
@@ -99,7 +104,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
-        book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
+		book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
 		searchResults = append(searchResults, book)
 	}
 
@@ -114,18 +119,21 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	statement, err := tx.Prepare("insert into books(name, url, currentChapter) values(?, ?, ?)")
+	statement, err := tx.Prepare("insert into books(name, url, currentChapter, dateCreated, dateUpdated) values(?, ?, ?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer statement.Close()
 
+	currentTime := time.Now()
 	newBook := Book{
 		Name:           r.FormValue("bookName"),
 		Url:            r.FormValue("bookUrl"),
 		CurrentChapter: r.FormValue("bookChapter"),
+		DateCreated:    currentTime.Format(timeLayout),
+		DateUpdated:    currentTime.Format(timeLayout),
 	}
-	_, err = statement.Exec(newBook.Name, newBook.Url, newBook.CurrentChapter)
+	_, err = statement.Exec(newBook.Name, newBook.Url, newBook.CurrentChapter, newBook.DateCreated, newBook.DateUpdated)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -135,12 +143,12 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-    // might need to redirect this
-    http.Redirect(w, r, "/", http.StatusSeeOther)
+	// might need to redirect this
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func deleteBook(w http.ResponseWriter, r *http.Request) {
-    tx, err := db.Begin()
+	tx, err := db.Begin()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -148,8 +156,8 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-    vars := mux.Vars(r)
-	_, err = statement.Exec(vars["id"]) 
+	vars := mux.Vars(r)
+	_, err = statement.Exec(vars["id"])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -161,7 +169,7 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func editBook(w http.ResponseWriter, r *http.Request) {
-    tx, err := db.Begin()
+	tx, err := db.Begin()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -170,12 +178,12 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-    url := r.FormValue("bookUrl")
-    name := r.FormValue("bookName")
-    currentChapter := r.FormValue("bookChapter")
+	url := r.FormValue("bookUrl")
+	name := r.FormValue("bookName")
+	currentChapter := r.FormValue("bookChapter")
 
-    vars := mux.Vars(r)
-	_, err = statement.Exec(url, name, currentChapter, vars["id"]) 
+	vars := mux.Vars(r)
+	_, err = statement.Exec(url, name, currentChapter, vars["id"])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -185,28 +193,27 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-    //TODO also redirect here
-    http.Redirect(w, r, "/", http.StatusSeeOther)
+	//TODO also redirect here
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
-
 
 func editHandler(w http.ResponseWriter, r *http.Request) {
 	query_string := "select id, name, url, currentChapter from books where id = ?"
-    vars := mux.Vars(r)
+	vars := mux.Vars(r)
 
 	resultRow := db.QueryRow(query_string, vars["id"])
 
-    var id string
-    var name string
-    var url string
-    var currentChapter string
+	var id string
+	var name string
+	var url string
+	var currentChapter string
 
-    err := resultRow.Scan(&id, &name, &url, &currentChapter)
-    if err != nil {
-        log.Fatal(err)
-    }
+	err := resultRow.Scan(&id, &name, &url, &currentChapter)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
+	book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
 
 	tmpl.ExecuteTemplate(w, "bookEdit", book)
 }
