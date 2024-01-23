@@ -87,6 +87,8 @@
 
     <h2 class="text-slate-500 text-3xl my-0 ml-auto">{{ .CurrentChapter }}</h2>
 
+    <p>{{ .DateCreated }} --- {{ .DateUpdated }}</p>
+
     <div class="flex flex-col gap-1 ml-4">
         <button class="w-8 h-8 ml-2 bg-slate-600 hover:bg-slate-500 border-0 border-b-2 active:translate-y-0.5 border-slate-700" 
             hx-get="/book/{{ .Id }}/edit"

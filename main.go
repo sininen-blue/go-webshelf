@@ -41,7 +41,7 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	query_string := "select id, name, url, currentChapter from books"
+	query_string := "select * from books order by dateUpdated desc"
 	resultRows, err := db.Query(query_string)
 	if err != nil {
 		log.Println("db query error")
@@ -54,13 +54,22 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		var name string
 		var url string
 		var currentChapter string
+		var dateCreated string
+		var dateUpdated string
 
-		err = resultRows.Scan(&id, &name, &url, &currentChapter)
+		err = resultRows.Scan(&id, &name, &url, &currentChapter, &dateCreated, &dateUpdated)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
+		book := Book{
+			Id:             id,
+			Name:           name,
+			Url:            url,
+			CurrentChapter: currentChapter,
+			DateCreated:    dateCreated,
+			DateUpdated:    dateUpdated,
+		}
 		searchResults = append(searchResults, book)
 	}
 
@@ -98,13 +107,22 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		var name string
 		var url string
 		var currentChapter string
+		var dateCreated string
+		var dateUpdated string
 
-		err = resultRows.Scan(&id, &name, &url, &currentChapter)
+		err = resultRows.Scan(&id, &name, &url, &currentChapter, &dateCreated, &dateUpdated)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
+		book := Book{
+			Id:             id,
+			Name:           name,
+			Url:            url,
+			CurrentChapter: currentChapter,
+			DateCreated:    dateCreated,
+			DateUpdated:    dateUpdated,
+		}
 		searchResults = append(searchResults, book)
 	}
 
@@ -173,7 +191,7 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ? where id = ?")
+	statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ? dateUpdated = ? where id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -181,9 +199,10 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("bookUrl")
 	name := r.FormValue("bookName")
 	currentChapter := r.FormValue("bookChapter")
+	updatedDate := time.Now().Format(timeLayout)
 
 	vars := mux.Vars(r)
-	_, err = statement.Exec(url, name, currentChapter, vars["id"])
+	_, err = statement.Exec(url, name, currentChapter, updatedDate, vars["id"])
 	if err != nil {
 		log.Fatal(err)
 	}
