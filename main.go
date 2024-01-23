@@ -191,7 +191,7 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ? dateUpdated = ? where id = ?")
+	statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ?, dateUpdated = ? where id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -199,10 +199,10 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("bookUrl")
 	name := r.FormValue("bookName")
 	currentChapter := r.FormValue("bookChapter")
-	updatedDate := time.Now().Format(timeLayout)
+	dateUpdated := time.Now().Format(timeLayout)
 
 	vars := mux.Vars(r)
-	_, err = statement.Exec(url, name, currentChapter, updatedDate, vars["id"])
+	_, err = statement.Exec(url, name, currentChapter, dateUpdated, vars["id"])
 	if err != nil {
 		log.Fatal(err)
 	}
