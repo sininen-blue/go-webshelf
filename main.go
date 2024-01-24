@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+    nurl "net/url"
 	"text/template"
 	"time"
 
@@ -15,6 +16,11 @@ var tmpl template.Template = *template.Must(template.ParseFiles("./templates/ind
 var db *sql.DB
 
 const timeLayout string = "2006/01/02"
+var trimColor = map[string]string {
+    "archiveofourown.org": "red",
+    "www.royalroad.com": "amber",
+    "www.fanfiction.net": "blue",
+}
 
 func main() {
 	var err error
@@ -62,6 +68,15 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
+        parsedUrl,_ := nurl.Parse(url) 
+		if err != nil {
+			log.Fatal(err)
+		}
+        color := trimColor[parsedUrl.Host]
+        if color == "" {
+            color = "slate"
+        }
+
 		book := Book{
 			Id:             id,
 			Name:           name,
@@ -69,6 +84,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			CurrentChapter: currentChapter,
 			DateCreated:    dateCreated,
 			DateUpdated:    dateUpdated,
+            Color: color,
 		}
 		searchResults = append(searchResults, book)
 	}
@@ -86,6 +102,7 @@ type Book struct {
 	Id             string
 	Name           string
 	Url            string
+    Color string
 	CurrentChapter string
 	DateCreated    string
 	DateUpdated    string
