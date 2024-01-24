@@ -20,6 +20,7 @@ var trimColor = map[string]string {
     "archiveofourown.org": "red",
     "www.royalroad.com": "amber",
     "www.fanfiction.net": "blue",
+    "forums.sufficientvelocity.com": "cyan",
 }
 
 func main() {
