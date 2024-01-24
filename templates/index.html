@@ -20,7 +20,7 @@
 
         .htmx-indicator {
             opacity: 0;
-            transition: opacity 200ms ease-in;
+            transition: all 200ms ease-in;
         }
         .htmx-request .htmx-indicator {
             opacity:1
@@ -29,6 +29,9 @@
             display: none;
         }
         .htmx-request .replacer {
+            display: inline;
+        }
+        .htmx-request.replacer {
             display: inline;
         }
         .svg-slate-400 {
@@ -45,15 +48,16 @@
                 class="w-10/12 md:w-64 h-8"
                 hx-get="/search/"
                 hx-trigger="keyup delay:200ms changed"
-                hx-target="#shelfList"
+                hx-target="#bookList"
                 hx-indicator="next #spinner">
+
             <div class="w-0 h-0 ml-2">
-                <img id="spinner" class="relative bottom-3 animate-spin svg-slate-400 htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
+                <img id="spinner" class="relative bottom-3 animate-spin svg-slate-400 hidden replacer htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
             </div>
         </header>
 
         <section class="flex flex-col md:flex-row gap-2 justify-center w-full mt-4">
-            <main class="flex flex-col gap-2 order-2 md:order-1 max-w-3xl w-full p-2">
+            <main class="flex flex-col gap-2 order-2 md:order-1 max-w-3xl w-auto md:w-full p-2">
                 <form id="addBook" class="flex flex-col flex-wrap gap-2 p-4 border-2 border-solid border-slate-700"
                     hx-post="/book/" 
                     hx-target="main" 
@@ -66,7 +70,7 @@
                     <label for="bookName">Name</label>
                     <input type="text" id="bookName" name="bookName" placeholder="Folklore Worm..." required>
                     <label for="bookChapter">Last Viewed Chapter</label>
-                    <input type="number" id="bookChapter" name="bookChapter" placeholder="4" required>
+                    <input type="number" step="0.01" id="bookChapter" name="bookChapter" placeholder="4" required>
 
                     <div class="flex items-center ml-auto mt-2">
                         <img id="spinner" class="bottom-3 animate-spin svg-slate-400 htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
@@ -79,7 +83,7 @@
 
                 <h1>Shelf</h1>
 
-                <section id="bookList" class="flex flex-col gap-2" id="shelfList">
+                <section id="bookList" class="flex flex-col gap-2">
                     {{ template "bookList" . }}
                 </section>
             </main>
