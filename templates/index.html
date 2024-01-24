@@ -88,15 +88,25 @@
                 </section>
             </main>
 
-            <aside class="w-auto h-60 mx-2 p-2 order-1 md:order-2 shadow shadow-slate-900 bg-slate-700">
+            <aside class="w-auto h-60 mx-2 p-2 order-1 md:order-2 shadow shadow-slate-900 bg-slate-700"
+                hx-get="/updates/"
+                hx-target="#updates"
+                hx-trigger="load, newAction from:body">
                 <h1>Recent Updates</h1>
-                <p>not done</p>
+                <div id="updates">loading</div>
             </aside>
         </section>
     </body>
 </html>
 {{ end }}
 
+{{ block "recentUpdates" . }}
+<div id="updates">
+{{ range .Results }}
+<p>{{ .Date }} - {{ .Action }}</p>
+{{ end }}
+</div>
+{{ end }}
 
 {{ block "bookList" . }}
 {{ range .Results }}

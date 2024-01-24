@@ -15,7 +15,7 @@ import (
 var tmpl template.Template = *template.Must(template.ParseFiles("./templates/index.html"))
 var db *sql.DB
 
-const timeLayout string = "2006/01/02"
+const timeLayout string = "2006/01/02 15:04:05"
 var trimColor = map[string]string {
     "archiveofourown.org": "red",
     "www.royalroad.com": "amber",
@@ -35,6 +35,7 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/updates/", updateHandler).Methods("GET")
 	r.HandleFunc("/search/", searchHandler).Methods("GET")
 	r.HandleFunc("/book/", addBook).Methods("POST")
 	r.HandleFunc("/book/{id:[0-9]+}/", editBook).Methods("PATCH")
@@ -96,7 +97,13 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	// bit inefficient, should look at how to make this not
 	// send the entire thing when redirecting
+    w.Header().Add("HX-TRIGGER", "newAction")
 	tmpl.ExecuteTemplate(w, "index", data)
+}
+
+type History struct {
+    Date string
+    Action string
 }
 
 type Book struct {
@@ -161,15 +168,24 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 	}
 	defer statement.Close()
 
-	currentTime := time.Now()
+	currentTime := time.Now().Format(timeLayout)
 	newBook := Book{
 		Name:           r.FormValue("bookName"),
 		Url:            r.FormValue("bookUrl"),
 		CurrentChapter: r.FormValue("bookChapter"),
-		DateCreated:    currentTime.Format(timeLayout),
-		DateUpdated:    currentTime.Format(timeLayout),
+		DateCreated:    currentTime,
+		DateUpdated:    currentTime,
 	}
 	_, err = statement.Exec(newBook.Name, newBook.Url, newBook.CurrentChapter, newBook.DateCreated, newBook.DateUpdated)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+    historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = historyStatement.Exec(currentTime, "added " + r.FormValue("bookName"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -179,7 +195,7 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	// might need to redirect this
+    w.Header().Add("HX-TRIGGER", "newAction")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -198,10 +214,22 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	currentTime := time.Now().Format(timeLayout)
+    historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = historyStatement.Exec(currentTime, "deleted " + "Put a query here")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+    w.Header().Add("HX-TRIGGER", "newAction")
 }
 
 func editBook(w http.ResponseWriter, r *http.Request) {
@@ -225,12 +253,23 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	currentTime := time.Now().Format(timeLayout)
+    historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = historyStatement.Exec(currentTime, "edited " + "put another query here, from > to")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	//TODO also redirect here
+    w.Header().Add("HX-TRIGGER", "newAction")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -253,4 +292,38 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	book := Book{Id: id, Name: name, Url: url, CurrentChapter: currentChapter}
 
 	tmpl.ExecuteTemplate(w, "bookEdit", book)
+}
+
+
+func updateHandler(w http.ResponseWriter, r *http.Request) {
+	query_string := "select date, action from history order by date desc limit 5 "
+
+	resultRows, err := db.Query(query_string)
+	if err != nil {
+        log.Println("I hate strings so much")
+		log.Fatal(err)
+	}
+
+    var recentHistory []History
+	for resultRows.Next() {
+		var date string
+		var action string
+
+		err = resultRows.Scan(&date, &action)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+        item := History{
+            Date: date,
+            Action: action,
+        }
+
+		recentHistory = append(recentHistory, item)
+	}
+
+	data := map[string][]History{
+		"Results": recentHistory,
+	}
+	tmpl.ExecuteTemplate(w, "recentUpdates", data)
 }
