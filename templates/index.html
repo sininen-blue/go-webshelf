@@ -11,6 +11,13 @@
             opacity: 0;
             transition: opacity 400ms ease-out;
         }
+        #book.htmx-swapping #deleteButton .to-replace {
+            display: none;
+        }
+        #book.htmx-swapping #deleteButton .replacer {
+            display: inline;
+        }
+
         .htmx-indicator {
             opacity: 0;
             transition: opacity 200ms ease-in;
@@ -47,10 +54,11 @@
 
         <section class="flex flex-col md:flex-row gap-2 justify-center w-full mt-4">
             <main class="flex flex-col gap-2 order-2 md:order-1 max-w-3xl w-full p-2">
-                <form class="flex flex-col flex-wrap gap-2 p-4 border-2 border-solid border-slate-700"
+                <form id="addBook" class="flex flex-col flex-wrap gap-2 p-4 border-2 border-solid border-slate-700"
                     hx-post="/book/" 
-                    hx-target="#bookList" 
-                    hx-select="#bookList"
+                    hx-target="main" 
+                    hx-select="main"
+                    hx-swap="outerHTML"
                     hx-trigger="submit">
 
                     <label for="bookUrl">Url</label>
@@ -110,7 +118,7 @@
                 <img class="to-replace svg-slate-400" src="/static/icons/pencil.svg" alt="Delete icon">
                 <img class="replacer animate-spin svg-slate-400 hidden htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
             </button>
-            <button class="w-8 h-8 ml-2 bg-slate-600 hover:bg-slate-500 border-0 border-b-2 active:translate-y-0.5 border-slate-700" 
+            <button id="deleteButton" class="w-8 h-8 ml-2 bg-slate-600 hover:bg-slate-500 border-0 border-b-2 active:translate-y-0.5 border-slate-700" 
                 hx-delete="/book/{{ .Id }}/"
                 hx-swap="delete swap:400ms"
                 hx-target="closest #book"
