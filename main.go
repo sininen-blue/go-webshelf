@@ -91,8 +91,39 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		searchResults = append(searchResults, book)
 	}
 
-	data := map[string][]Book{
+    // second query
+
+	query_string = "select date, action from history order by date desc limit 5 "
+
+	resultRows, err = db.Query(query_string)
+	if err != nil {
+        log.Println("I hate strings so much")
+		log.Fatal(err)
+	}
+
+    var recentHistory []History
+	for resultRows.Next() {
+		var date string
+		var action string
+
+		err = resultRows.Scan(&date, &action)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+        item := History{
+            Date: date,
+            Action: action,
+        }
+
+		recentHistory = append(recentHistory, item)
+	}
+
+
+
+	data := map[string]interface{}{
 		"Results": searchResults,
+        "Updates": recentHistory,
 	}
 
 	// bit inefficient, should look at how to make this not
@@ -214,12 +245,19 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+    var name string
+	resultRow := db.QueryRow("select name from books where id = ?", vars["id"])
+    err = resultRow.Scan(&name)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	currentTime := time.Now().Format(timeLayout)
     historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = historyStatement.Exec(currentTime, "deleted " + "Put a query here")
+	_, err = historyStatement.Exec(currentTime, "deleted " + name)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -258,7 +296,8 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = historyStatement.Exec(currentTime, "edited " + "put another query here, from > to")
+
+	_, err = historyStatement.Exec(currentTime, "edited " + name)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -323,7 +362,7 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string][]History{
-		"Results": recentHistory,
+		"Updates": recentHistory,
 	}
 	tmpl.ExecuteTemplate(w, "recentUpdates", data)
 }
