@@ -48,54 +48,67 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	query_string := "select * from books order by dateUpdated desc"
-	resultRows, err := db.Query(query_string)
-	if err != nil {
-		log.Println("db query error")
-		log.Fatal(err)
-	}
+func dbGetBooks(columns string, condition string, key string) []Book {
+    var err error
+    var rows *sql.Rows
 
-	var searchResults []Book
-	for resultRows.Next() {
-		var id string
-		var name string
-		var url string
-		var currentChapter string
-		var dateCreated string
-		var dateUpdated string
+    if condition == "" {
+        query_string := "select " + columns + " from books order by dateUpdated desc"
+        rows, err = db.Query(query_string)
+    } else {
+        query_string := "select " + columns + " from books where " + condition + " order by date Updated desc"
+        rows, err = db.Query(query_string, key)
+    }
+    if err != nil {
+        log.Println("db query error")
+        log.Fatal(err)
+    }
 
-		err = resultRows.Scan(&id, &name, &url, &currentChapter, &dateCreated, &dateUpdated)
-		if err != nil {
-			log.Fatal(err)
-		}
+    var results []Book
+    for rows.Next() {
+        var id string
+        var name string
+        var url string
+        var currentChapter string
+        var dateCreated string
+        var dateUpdated string
+
+        err = rows.Scan(&id, &name, &url, &currentChapter, &dateCreated, &dateUpdated)
+        if err != nil {
+            log.Fatal(err)
+        }
 
         parsedUrl,_ := nurl.Parse(url) 
-		if err != nil {
-			log.Fatal(err)
-		}
+        if err != nil {
+            log.Fatal(err)
+        }
         color := trimColor[parsedUrl.Host]
         if color == "" {
             color = "slate"
         }
 
-		book := Book{
-			Id:             id,
-			Name:           name,
-			Url:            url,
-			CurrentChapter: currentChapter,
-			DateCreated:    dateCreated,
-			DateUpdated:    dateUpdated,
+        book := Book{
+            Id:             id,
+            Name:           name,
+            Url:            url,
+            CurrentChapter: currentChapter,
+            DateCreated:    dateCreated,
+            DateUpdated:    dateUpdated,
             Color: color,
-		}
-		searchResults = append(searchResults, book)
-	}
+        }
+        results = append(results, book)
+    }
 
+    return results
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+    searchResults := dbGetBooks("*","","")
     // second query
 
-	query_string = "select date, action from history order by date desc limit 5 "
+    query_string := "select date, action from history order by date desc limit 5 "
 
-	resultRows, err = db.Query(query_string)
+    resultRows, err := db.Query(query_string)
 	if err != nil {
         log.Println("I hate strings so much")
 		log.Fatal(err)
