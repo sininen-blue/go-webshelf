@@ -170,12 +170,14 @@
 
     <button class="ml-auto w-8 h-8 ml-2 bg-slate-600 hover:bg-slate-500 border-0 border-b-2 active:translate-y-0.5 border-slate-700" 
         type="submit">
-        <img class="svg-slate-400" src="/static/icons/pencil.svg" alt="Edit icon">
+        <img class="to-replace svg-slate-400" src="/static/icons/pencil.svg" alt="Delete icon">
+        <img class="replacer animate-spin svg-slate-400 hidden htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
     </button>
 </form>
 
 <button class="ml-2 w-8 h-8 bg-slate-600 hover:bg-slate-500 border-0 border-b-2 active:translate-y-0.5 border-slate-700"
     hx-get="/" hx-target="body" hx-swap="outerHTML">
-    <img class="svg-slate-400" src="/static/icons/cancel.svg" alt="Edit icon">
+    <img class="to-replace svg-slate-400" src="/static/icons/cancel.svg" alt="Delete icon">
+    <img class="replacer animate-spin svg-slate-400 hidden htmx-indicator" src="/static/icons/loader.svg" alt="loading indicator">
 </button>
 {{ end }}
