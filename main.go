@@ -56,7 +56,7 @@ func dbGetBooks(columns string, condition string, key string) []Book {
         query_string := "select " + columns + " from books order by dateUpdated desc"
         rows, err = db.Query(query_string)
     } else {
-        query_string := "select " + columns + " from books where " + condition + " order by date Updated desc"
+        query_string := "select " + columns + " from books where " + condition + " order by dateUpdated desc"
         rows, err = db.Query(query_string, key)
     }
     if err != nil {
@@ -161,49 +161,8 @@ type Book struct {
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	query_string := "select * from books where name like ?"
 	query_key := "%" + r.URL.Query().Get("q") + "%"
-
-	resultRows, err := db.Query(query_string, query_key)
-	if err != nil {
-		log.Println("db query error")
-		log.Fatal(err)
-	}
-
-	var searchResults []Book
-	for resultRows.Next() {
-		var id string
-		var name string
-		var url string
-		var currentChapter string
-		var dateCreated string
-		var dateUpdated string
-
-		err = resultRows.Scan(&id, &name, &url, &currentChapter, &dateCreated, &dateUpdated)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-        parsedUrl,_ := nurl.Parse(url) 
-		if err != nil {
-			log.Fatal(err)
-		}
-        color := trimColor[parsedUrl.Host]
-        if color == "" {
-            color = "slate"
-        }
-
-		book := Book{
-			Id:             id,
-			Name:           name,
-			Url:            url,
-			CurrentChapter: currentChapter,
-			DateCreated:    dateCreated,
-			DateUpdated:    dateUpdated,
-            Color: color,
-		}
-		searchResults = append(searchResults, book)
-	}
+    searchResults := dbGetBooks("*","name like ?", query_key)
 
 	data := map[string][]Book{
 		"Results": searchResults,
