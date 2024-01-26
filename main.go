@@ -171,6 +171,15 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
+        parsedUrl,_ := nurl.Parse(url) 
+		if err != nil {
+			log.Fatal(err)
+		}
+        color := trimColor[parsedUrl.Host]
+        if color == "" {
+            color = "slate"
+        }
+
 		book := Book{
 			Id:             id,
 			Name:           name,
@@ -178,6 +187,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 			CurrentChapter: currentChapter,
 			DateCreated:    dateCreated,
 			DateUpdated:    dateUpdated,
+            Color: color,
 		}
 		searchResults = append(searchResults, book)
 	}
