@@ -12,7 +12,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var tmpl template.Template = *template.Must(template.ParseFiles("./templates/index.html"))
+var tmpl template.Template = *template.Must(template.ParseFiles("./templates/index.html", "./templates/history.html"))
 var db *sql.DB
 
 const timeLayout string = "2006/01/02 15:04:05"
@@ -36,6 +36,7 @@ func main() {
 
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/updates/", updateHandler).Methods("GET")
+	r.HandleFunc("/updates/full", updateListHandler).Methods("GET")
 	r.HandleFunc("/search/", searchHandler).Methods("GET")
 	r.HandleFunc("/book/", addBook).Methods("POST")
 	r.HandleFunc("/book/{id:[0-9]+}/", editBook).Methods("PATCH")
@@ -361,4 +362,38 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 		"Updates": recentHistory,
 	}
 	tmpl.ExecuteTemplate(w, "recentUpdates", data)
+}
+
+func updateListHandler(w http.ResponseWriter, r *http.Request) {
+	query_string := "select date, action from history order by date desc"
+
+	resultRows, err := db.Query(query_string)
+	if err != nil {
+        log.Println("I hate strings so much")
+		log.Fatal(err)
+	}
+
+    var recentHistory []History
+	for resultRows.Next() {
+		var date string
+		var action string
+
+		err = resultRows.Scan(&date, &action)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+        item := History{
+            Date: date,
+            Action: action,
+        }
+
+		recentHistory = append(recentHistory, item)
+	}
+
+	data := map[string][]History{
+		"Updates": recentHistory,
+	}
+
+	tmpl.ExecuteTemplate(w, "allUpdates", data)
 }

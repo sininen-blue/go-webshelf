@@ -1,0 +1,11 @@
+{{ block "allUpdates" . }}
+<body class="m-0 p-0 font-sans text-base bg-slate-800 text-slate-200">
+    <button hx-get="/" hx-target="body">
+        back
+    </button>
+
+    {{ range .Updates }}
+        <p><span class="text-sm font-mono text-slate-400">{{ .Date }}</span> - {{ .Action }}</p>
+    {{ end }}
+</body>
+{{ end }}
