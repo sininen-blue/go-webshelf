@@ -23,6 +23,14 @@
             display: inline;
         }
 
+        #book.htmx-added {
+            opacity: 0;
+        }
+        #book {
+            opacity: 1;
+            transition: opacity 400ms ease-out;
+        }
+
         .htmx-indicator {
             opacity: 0;
             transition: opacity 200ms ease-in;
@@ -66,7 +74,7 @@
                 <form id="addBook" class="flex flex-col flex-wrap gap-2 p-4 border-2 border-solid border-slate-700"
                     hx-post="/book/" 
                     hx-target="#bookList" 
-                    hx-swap="afterbegin"
+                    hx-swap="afterbegin settle:400ms"
                     hx-trigger="submit">
 
                     <label for="bookUrl">Url</label>
