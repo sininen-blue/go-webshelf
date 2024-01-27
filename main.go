@@ -268,43 +268,59 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func editBook(w http.ResponseWriter, r *http.Request) {
-	tx, err := db.Begin()
-	if err != nil {
-		log.Fatal(err)
-	}
-	statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ?, dateUpdated = ? where id = ?")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	url := r.FormValue("bookUrl")
-	name := r.FormValue("bookName")
-	currentChapter := r.FormValue("bookChapter")
-	dateUpdated := time.Now().Format(timeLayout)
-
 	vars := mux.Vars(r)
-	_, err = statement.Exec(url, name, currentChapter, dateUpdated, vars["id"])
+
+    var currentBook Book
+    bookId := vars["id"]
+    bookRow := db.QueryRow("select * from books where id == ?", bookId)
+    err := bookRow.Scan(&currentBook.Id, &currentBook.Name, &currentBook.Url, &currentBook.CurrentChapter, &currentBook.DateCreated, &currentBook.DateUpdated)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+    editUrl := r.FormValue("bookUrl")
+    editName := r.FormValue("bookName")
+    editCurrentChapter := r.FormValue("bookChapter")
 
 	currentTime := time.Now().Format(timeLayout)
-    historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	_, err = historyStatement.Exec(currentTime, "edited " + name)
-	if err != nil {
-		log.Fatal(err)
-	}
+    if currentBook.Url != editUrl && currentBook.Name != editName && currentBook.CurrentChapter != editCurrentChapter {
+        tx, err := db.Begin()
+        if err != nil {
+            log.Fatal(err)
+        }
+        statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ?, dateUpdated = ? where id = ?")
+        if err != nil {
+            log.Fatal(err)
+        }
 
-	err = tx.Commit()
-	if err != nil {
-		log.Fatal(err)
-	}
+        url := r.FormValue("bookUrl")
+        name := r.FormValue("bookName")
+        currentChapter := r.FormValue("bookChapter")
+        dateUpdated := currentTime
 
-	//TODO also redirect here
+        _, err = statement.Exec(url, name, currentChapter, dateUpdated, vars["id"])
+        if err != nil {
+            log.Fatal(err)
+        }
+    
+        // update item queries
+        historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        _, err = historyStatement.Exec(currentTime, "edited " + name)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        err = tx.Commit()
+        if err != nil {
+            log.Fatal(err)
+        }
+    }
+
     w.Header().Add("HX-TRIGGER", "newAction")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
