@@ -189,7 +189,7 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 		DateCreated:    currentTime,
 		DateUpdated:    currentTime,
 	}
-	_, err = statement.Exec(newBook.Name, newBook.Url, newBook.CurrentChapter, newBook.DateCreated, newBook.DateUpdated)
+	addResult, err := statement.Exec(newBook.Name, newBook.Url, newBook.CurrentChapter, newBook.DateCreated, newBook.DateUpdated)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -208,8 +208,22 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+    var book Book
+    bookId, err := addResult.LastInsertId()
+    if err != nil {
+        log.Fatal("please")
+        log.Fatal(err)
+    }
+    bookRow := db.QueryRow("select * from books where id == ?", bookId)
+    err = bookRow.Scan(&book.Id, &book.Name, &book.Url, &book.CurrentChapter, &book.DateCreated, &book.DateUpdated)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+    book.Color = "green"
+
     w.Header().Add("HX-TRIGGER", "newAction")
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	tmpl.ExecuteTemplate(w, "book", book)
 }
 
 func deleteBook(w http.ResponseWriter, r *http.Request) {
