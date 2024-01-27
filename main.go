@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-    nurl "net/url"
+	nurl "net/url"
 	"text/template"
 	"time"
 
@@ -16,11 +16,12 @@ var tmpl template.Template = *template.Must(template.ParseFiles("./templates/ind
 var db *sql.DB
 
 const timeLayout string = "2006/01/02 15:04:05"
-var trimColor = map[string]string {
-    "archiveofourown.org": "red",
-    "www.royalroad.com": "amber",
-    "www.fanfiction.net": "blue",
-    "forums.sufficientvelocity.com": "cyan",
+
+var trimColor = map[string]string{
+	"archiveofourown.org":           "red",
+	"www.royalroad.com":             "amber",
+	"www.fanfiction.net":            "blue",
+	"forums.sufficientvelocity.com": "cyan",
 }
 
 func main() {
@@ -50,72 +51,72 @@ func main() {
 }
 
 func dbGetBooks(columns string, condition string, key string) []Book {
-    var err error
-    var rows *sql.Rows
+	var err error
+	var rows *sql.Rows
 
-    if condition == "" {
-        query_string := "select " + columns + " from books order by dateUpdated desc"
-        rows, err = db.Query(query_string)
-    } else {
-        query_string := "select " + columns + " from books where " + condition + " order by dateUpdated desc"
-        rows, err = db.Query(query_string, key)
-    }
-    if err != nil {
-        log.Println("db query error")
-        log.Fatal(err)
-    }
-
-    var results []Book
-    for rows.Next() {
-        var id string
-        var name string
-        var url string
-        var currentChapter string
-        var dateCreated string
-        var dateUpdated string
-
-        err = rows.Scan(&id, &name, &url, &currentChapter, &dateCreated, &dateUpdated)
-        if err != nil {
-            log.Fatal(err)
-        }
-
-        parsedUrl,_ := nurl.Parse(url) 
-        if err != nil {
-            log.Fatal(err)
-        }
-        color := trimColor[parsedUrl.Host]
-        if color == "" {
-            color = "slate"
-        }
-
-        book := Book{
-            Id:             id,
-            Name:           name,
-            Url:            url,
-            CurrentChapter: currentChapter,
-            DateCreated:    dateCreated,
-            DateUpdated:    dateUpdated,
-            Color: color,
-        }
-        results = append(results, book)
-    }
-
-    return results
-}
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-    searchResults := dbGetBooks("*","","")
-    // second query
-
-    query_string := "select date, action from history order by date desc limit 5 "
-
-    resultRows, err := db.Query(query_string)
+	if condition == "" {
+		query_string := "select " + columns + " from books order by dateUpdated desc"
+		rows, err = db.Query(query_string)
+	} else {
+		query_string := "select " + columns + " from books where " + condition + " order by dateUpdated desc"
+		rows, err = db.Query(query_string, key)
+	}
 	if err != nil {
-        log.Println("I hate strings so much")
+		log.Println("db query error")
 		log.Fatal(err)
 	}
 
-    var recentHistory []History
+	var results []Book
+	for rows.Next() {
+		var id string
+		var name string
+		var url string
+		var currentChapter string
+		var dateCreated string
+		var dateUpdated string
+
+		err = rows.Scan(&id, &name, &url, &currentChapter, &dateCreated, &dateUpdated)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		parsedUrl, _ := nurl.Parse(url)
+		if err != nil {
+			log.Fatal(err)
+		}
+		color := trimColor[parsedUrl.Host]
+		if color == "" {
+			color = "slate"
+		}
+
+		book := Book{
+			Id:             id,
+			Name:           name,
+			Url:            url,
+			CurrentChapter: currentChapter,
+			DateCreated:    dateCreated,
+			DateUpdated:    dateUpdated,
+			Color:          color,
+		}
+		results = append(results, book)
+	}
+
+	return results
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	searchResults := dbGetBooks("*", "", "")
+	// second query
+
+	query_string := "select date, action from history order by date desc limit 5 "
+
+	resultRows, err := db.Query(query_string)
+	if err != nil {
+		log.Println("I hate strings so much")
+		log.Fatal(err)
+	}
+
+	var recentHistory []History
 	for resultRows.Next() {
 		var date string
 		var action string
@@ -125,37 +126,35 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
-        item := History{
-            Date: date,
-            Action: action,
-        }
+		item := History{
+			Date:   date,
+			Action: action,
+		}
 
 		recentHistory = append(recentHistory, item)
 	}
 
-
-
 	data := map[string]interface{}{
 		"Results": searchResults,
-        "Updates": recentHistory,
+		"Updates": recentHistory,
 	}
 
 	// bit inefficient, should look at how to make this not
 	// send the entire thing when redirecting
-    w.Header().Add("HX-TRIGGER", "newAction")
+	w.Header().Add("HX-TRIGGER", "newAction")
 	tmpl.ExecuteTemplate(w, "index", data)
 }
 
 type History struct {
-    Date string
-    Action string
+	Date   string
+	Action string
 }
 
 type Book struct {
 	Id             string
 	Name           string
 	Url            string
-    Color string
+	Color          string
 	CurrentChapter string
 	DateCreated    string
 	DateUpdated    string
@@ -163,7 +162,7 @@ type Book struct {
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	query_key := "%" + r.URL.Query().Get("q") + "%"
-    searchResults := dbGetBooks("*","name like ?", query_key)
+	searchResults := dbGetBooks("*", "name like ?", query_key)
 
 	data := map[string][]Book{
 		"Results": searchResults,
@@ -195,11 +194,11 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-    historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
+	historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = historyStatement.Exec(currentTime, "added " + r.FormValue("bookName"))
+	_, err = historyStatement.Exec(currentTime, "added "+r.FormValue("bookName"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -209,21 +208,21 @@ func addBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-    var book Book
-    bookId, err := addResult.LastInsertId()
-    if err != nil {
-        log.Fatal("please")
-        log.Fatal(err)
-    }
-    bookRow := db.QueryRow("select * from books where id == ?", bookId)
-    err = bookRow.Scan(&book.Id, &book.Name, &book.Url, &book.CurrentChapter, &book.DateCreated, &book.DateUpdated)
+	var book Book
+	bookId, err := addResult.LastInsertId()
+	if err != nil {
+		log.Fatal("please")
+		log.Fatal(err)
+	}
+	bookRow := db.QueryRow("select * from books where id == ?", bookId)
+	err = bookRow.Scan(&book.Id, &book.Name, &book.Url, &book.CurrentChapter, &book.DateCreated, &book.DateUpdated)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-    book.Color = "green"
+	book.Color = "green"
 
-    w.Header().Add("HX-TRIGGER", "newAction")
+	w.Header().Add("HX-TRIGGER", "newAction")
 	tmpl.ExecuteTemplate(w, "book", book)
 }
 
@@ -242,19 +241,19 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-    var name string
+	var name string
 	resultRow := db.QueryRow("select name from books where id = ?", vars["id"])
-    err = resultRow.Scan(&name)
+	err = resultRow.Scan(&name)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	currentTime := time.Now().Format(timeLayout)
-    historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
+	historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = historyStatement.Exec(currentTime, "deleted " + name)
+	_, err = historyStatement.Exec(currentTime, "deleted "+name)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -264,64 +263,64 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-    w.Header().Add("HX-TRIGGER", "newAction")
+	w.Header().Add("HX-TRIGGER", "newAction")
 }
 
 func editBook(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-    var currentBook Book
-    bookId := vars["id"]
-    bookRow := db.QueryRow("select * from books where id == ?", bookId)
-    err := bookRow.Scan(&currentBook.Id, &currentBook.Name, &currentBook.Url, &currentBook.CurrentChapter, &currentBook.DateCreated, &currentBook.DateUpdated)
+	var currentBook Book
+	bookId := vars["id"]
+	bookRow := db.QueryRow("select * from books where id == ?", bookId)
+	err := bookRow.Scan(&currentBook.Id, &currentBook.Name, &currentBook.Url, &currentBook.CurrentChapter, &currentBook.DateCreated, &currentBook.DateUpdated)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-    editUrl := r.FormValue("bookUrl")
-    editName := r.FormValue("bookName")
-    editCurrentChapter := r.FormValue("bookChapter")
+	editUrl := r.FormValue("bookUrl")
+	editName := r.FormValue("bookName")
+	editCurrentChapter := r.FormValue("bookChapter")
 
 	currentTime := time.Now().Format(timeLayout)
 
-    if currentBook.Url != editUrl && currentBook.Name != editName && currentBook.CurrentChapter != editCurrentChapter {
-        tx, err := db.Begin()
-        if err != nil {
-            log.Fatal(err)
-        }
-        statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ?, dateUpdated = ? where id = ?")
-        if err != nil {
-            log.Fatal(err)
-        }
+	if currentBook.Url != editUrl && currentBook.Name != editName && currentBook.CurrentChapter != editCurrentChapter {
+		tx, err := db.Begin()
+		if err != nil {
+			log.Fatal(err)
+		}
+		statement, err := tx.Prepare("update books set url = ?, name = ?, currentChapter = ?, dateUpdated = ? where id = ?")
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        url := r.FormValue("bookUrl")
-        name := r.FormValue("bookName")
-        currentChapter := r.FormValue("bookChapter")
-        dateUpdated := currentTime
+		url := r.FormValue("bookUrl")
+		name := r.FormValue("bookName")
+		currentChapter := r.FormValue("bookChapter")
+		dateUpdated := currentTime
 
-        _, err = statement.Exec(url, name, currentChapter, dateUpdated, vars["id"])
-        if err != nil {
-            log.Fatal(err)
-        }
-    
-        // update item queries
-        historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
-        if err != nil {
-            log.Fatal(err)
-        }
+		_, err = statement.Exec(url, name, currentChapter, dateUpdated, vars["id"])
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        _, err = historyStatement.Exec(currentTime, "edited " + name)
-        if err != nil {
-            log.Fatal(err)
-        }
+		// update item queries
+		historyStatement, err := tx.Prepare("insert into history(date, action) values(?, ?)")
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        err = tx.Commit()
-        if err != nil {
-            log.Fatal(err)
-        }
-    }
+		_, err = historyStatement.Exec(currentTime, "edited "+name)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-    w.Header().Add("HX-TRIGGER", "newAction")
+		err = tx.Commit()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	w.Header().Add("HX-TRIGGER", "newAction")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -346,17 +345,16 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "bookEdit", book)
 }
 
-
 func updateHandler(w http.ResponseWriter, r *http.Request) {
 	query_string := "select date, action from history order by date desc limit 5 "
 
 	resultRows, err := db.Query(query_string)
 	if err != nil {
-        log.Println("I hate strings so much")
+		log.Println("I hate strings so much")
 		log.Fatal(err)
 	}
 
-    var recentHistory []History
+	var recentHistory []History
 	for resultRows.Next() {
 		var date string
 		var action string
@@ -366,10 +364,10 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
-        item := History{
-            Date: date,
-            Action: action,
-        }
+		item := History{
+			Date:   date,
+			Action: action,
+		}
 
 		recentHistory = append(recentHistory, item)
 	}
@@ -385,11 +383,11 @@ func updateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	resultRows, err := db.Query(query_string)
 	if err != nil {
-        log.Println("I hate strings so much")
+		log.Println("I hate strings so much")
 		log.Fatal(err)
 	}
 
-    var recentHistory []History
+	var recentHistory []History
 	for resultRows.Next() {
 		var date string
 		var action string
@@ -399,10 +397,10 @@ func updateListHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
-        item := History{
-            Date: date,
-            Action: action,
-        }
+		item := History{
+			Date:   date,
+			Action: action,
+		}
 
 		recentHistory = append(recentHistory, item)
 	}
