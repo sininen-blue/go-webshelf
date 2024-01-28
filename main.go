@@ -24,12 +24,37 @@ var trimColor = map[string]string{
 	"forums.sufficientvelocity.com": "cyan",
 }
 
-func main() {
+func init() {
 	var err error
 	db, err = sql.Open("sqlite3", "webshelf.db")
 	if err != nil {
 		log.Fatal(err)
 	}
+    
+    sqlSchema := `
+    CREATE TABLE if not exists "books" (
+        "id"	INTEGER,
+        "name"	TEXT,
+        "url"	TEXT,
+        "currentChapter"	TEXT,
+        "dateCreated"	TEXT,
+        "dateUpdated"	INTEGER,
+        PRIMARY KEY("id")
+    );
+    CREATE TABLE if not exists "history" (
+        "id"	INTEGER,
+        "date"	TEXT,
+        "action"	TEXT,
+        PRIMARY KEY("id")
+    );
+    `
+    _, err = db.Exec(sqlSchema)
+	if err != nil {
+        log.Fatal(err)
+	}
+}
+
+func main() {
 	defer db.Close()
 
 	r := mux.NewRouter()
