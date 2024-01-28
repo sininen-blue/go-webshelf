@@ -296,7 +296,7 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 
 	var currentBook Book
 	bookId := vars["id"]
-	bookRow := db.QueryRow("select * from books where id == ?", bookId)
+	bookRow := db.QueryRow("select * from books where id = ?", bookId)
 	err := bookRow.Scan(&currentBook.Id, &currentBook.Name, &currentBook.Url, &currentBook.CurrentChapter, &currentBook.DateCreated, &currentBook.DateUpdated)
 	if err != nil {
 		log.Fatal(err)
@@ -308,7 +308,9 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 
 	currentTime := time.Now().Format(timeLayout)
 
-	if currentBook.Url != editUrl && currentBook.Name != editName && currentBook.CurrentChapter != editCurrentChapter {
+	if currentBook.Url == editUrl && currentBook.Name == editName && currentBook.CurrentChapter == editCurrentChapter {
+        log.Println("no changes")
+    } else {
 		tx, err := db.Begin()
 		if err != nil {
 			log.Fatal(err)
