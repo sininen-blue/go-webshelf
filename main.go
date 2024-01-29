@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	nurl "net/url"
+	"strconv"
 	"text/template"
 	"time"
 
@@ -30,8 +31,8 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-    
-    sqlSchema := `
+
+	sqlSchema := `
     CREATE TABLE if not exists "books" (
         "id"	INTEGER,
         "name"	TEXT,
@@ -48,9 +49,9 @@ func init() {
         PRIMARY KEY("id")
     );
     `
-    _, err = db.Exec(sqlSchema)
+	_, err = db.Exec(sqlSchema)
 	if err != nil {
-        log.Fatal(err)
+		log.Fatal(err)
 	}
 }
 
@@ -129,8 +130,45 @@ func dbGetBooks(columns string, condition string, key string) []Book {
 	return results
 }
 
+func getPagedBooks(page int) []Book {
+	var bookList []Book
+
+	rows, err := db.Query("select * from books order by dateUpdated desc limit 10 offset ?", (page-1) * 10)
+	if err != nil {
+		log.Fatal(err)
+	}
+    
+    for rows.Next() {
+        var b Book
+        err = rows.Scan(&b.Id, &b.Name, &b.Url, &b.CurrentChapter, &b.DateCreated, &b.DateUpdated) 
+        if err != nil {
+            log.Fatal(err)
+        }
+
+		parsedUrl, _ := nurl.Parse(b.Url)
+		color := trimColor[parsedUrl.Host]
+		if color == "" {
+			color = "slate"
+		}
+        b.Color = color
+
+        bookList = append(bookList, b)
+    }
+
+	return bookList
+}
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	searchResults := dbGetBooks("*", "", "")
+    page := r.URL.Query().Get("page")
+    if page == "" {
+        page = "1"
+    }
+    pageInt, err := strconv.Atoi(page)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    searchResults := getPagedBooks(pageInt)
 	// second query
 
 	query_string := "select date, action from history order by date desc limit 5 "
@@ -160,6 +198,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
+        "Page": pageInt,
 		"Results": searchResults,
 		"Updates": recentHistory,
 	}
@@ -309,8 +348,8 @@ func editBook(w http.ResponseWriter, r *http.Request) {
 	currentTime := time.Now().Format(timeLayout)
 
 	if currentBook.Url == editUrl && currentBook.Name == editName && currentBook.CurrentChapter == editCurrentChapter {
-        log.Println("no changes")
-    } else {
+		log.Println("no changes")
+	} else {
 		tx, err := db.Begin()
 		if err != nil {
 			log.Fatal(err)

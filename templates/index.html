@@ -97,6 +97,8 @@
 
                 <section id="bookList" class="flex flex-col gap-2">
                     {{ template "bookList" . }}
+
+                    <a href="/?page={{ len (printf "a%*s" .Page "") }}">next</a>
                 </section>
             </main>
 
